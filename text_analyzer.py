@@ -14,6 +14,7 @@ from nltk.corpus import stopwords
 import nltk
 import PyPDF2
 import io
+import string
 
 # Download stopwords
 nltk.download('stopwords', quiet=True)
@@ -25,16 +26,20 @@ nlp = en_core_web_sm.load()
 class EnhancedTextAnalyzer:
     def __init__(self, text):
         self.text = text
-        self.words = self.text.lower().split()
+        self.words = self.preprocess_text(self.text)
         self.sentences = re.findall(r'\w+[.!?]', self.text)
         self.stop_words = set(stopwords.words('english'))
+
+    def preprocess_text(self, text):
+        # Remove punctuation and convert to lowercase
+        text = text.translate(str.maketrans('', '', string.punctuation)).lower()
+        return text.split()
 
     def word_frequency(self, n=10, include_stopwords=False):
         if include_stopwords:
             return Counter(self.words).most_common(n)
         else:
             return Counter(word for word in self.words if word not in self.stop_words).most_common(n)
-
     def generate_wordcloud(self):
         wordcloud = WordCloud(width=800, height=400, background_color='white').generate(self.text)
         return wordcloud
@@ -111,7 +116,7 @@ def main():
         max-width: 1200px;
         margin: 0 auto;
     }
-    h1 {
+    h1, h2, h3 {
         color: #2c3e50;
         font-family: 'Helvetica Neue', sans-serif;
     }
@@ -124,26 +129,59 @@ def main():
         background-color: #3498db;
         color: white;
     }
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #2c3e50;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+        font-weight: bold;
+    }
+    .user-guide {
+        border-left: 5px solid #3498db;
+        padding-left: 10px;
+        margin-bottom: 20px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
     st.title("🧠 NLP Text Analyzer")
+    st.markdown("<p style='text-align: right; color: #7f8c8d;'>Developed by Dr. Ridwan Oladipo</p>",
+                unsafe_allow_html=True)
 
     # User Guide
     with st.expander("📘 User Guide"):
         st.markdown("""
-        Welcome to the NLP Text Analyzer! Here's a quick guide to get you started:
+        <div class="user-guide">
+        Welcome to the NLP Text Analyzer by Dr. Ridwan Oladipo! Here's a quick guide to get you started:
 
         1. **Input**: Choose to either upload a file (TXT or PDF) or paste text directly.
         2. **Text Overview**: View basic statistics and a word cloud of your text.
         3. **Word Frequency**: Analyze the most common words, with an option to include/exclude stop words.
         4. **Sentiment Analysis**: Understand the overall sentiment of your text.
+           - Sentiment Score ranges from -1 (very negative) to +1 (very positive).
+           - Scores interpretation:
+             * -1.0 to -0.6: Very Negative
+             * -0.6 to -0.1: Negative
+             * -0.1 to +0.1: Neutral
+             * +0.1 to +0.6: Positive
+             * +0.6 to +1.0: Very Positive
         5. **Named Entity Recognition**: Identify key entities in your text.
         6. **Word Search**: Look for specific words and their context within the text.
         7. **Readability Analysis**: Get insights into how easy or difficult your text is to read.
+           - Readability Score ranges from -1 (very difficult) to +1 (very easy).
+           - Scores interpretation:
+             * -1.0 to -0.5: Very difficult to read
+             * -0.5 to 0.0: Somewhat difficult to read
+             * 0.0 to +0.5: Moderately easy to read
+             * +0.5 to +1.0: Very easy to read
 
         Explore each section to gain valuable insights into your text!
-        """)
+        </div>
+        """, unsafe_allow_html=True)
 
     # File upload or text input
     upload_option = st.radio("Choose input method:", ["Upload File", "Paste Text"])
@@ -210,7 +248,8 @@ def main():
         st.header("🏷️ Named Entity Recognition")
         entities = analyzer.named_entity_recognition()
         df = pd.DataFrame(entities, columns=['Entity', 'Label'])
-        st.table(df)
+        with st.expander("View Named Entities"):
+            st.table(df)
 
         st.header("🔍 Word Search")
         search_word = st.text_input("Enter a word to search in the text:")
@@ -253,11 +292,14 @@ def main():
     else:
         st.info("Please upload a file or enter some text to begin the analysis.")
 
-    st.markdown("---")
-    st.markdown("Created with ❤️ by Your Name")
     st.markdown(
-        "Connect with me on [LinkedIn](https://www.linkedin.com/in/yourprofile) | [GitHub](https://github.com/yourusername)")
-
+        """
+        <div class="footer">
+        © 2024 All Rights Reserved | Dr. Ridwan Oladipo
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 if __name__ == "__main__":
-    main()
+        main()
