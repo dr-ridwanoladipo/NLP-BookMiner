@@ -1,10 +1,5 @@
 # 🧠 NLP Text Analyzer
 
-## 👨‍🔬 Developed by Dr. Ridwan Oladipo
-
-- 🌐 GitHub: [GitHub Profile](https://github.com/dr-ridwanoladipo)
-- 📧 Email: [dr.ridwan.oladipo@gmail.com](mailto:dr.ridwan.oladipo@gmail.com)
-
 ## 🌟 Project Overview
 
 This NLP Text Analyzer is a sophisticated tool that demonstrates advanced Natural Language Processing techniques. It's designed to provide in-depth analysis of text documents, showcasing a range of analytical capabilities essential in modern data science and AI applications.
@@ -46,9 +41,17 @@ This project showcases several key skills and competencies:
 - 🗂️ Implementation of topic modeling techniques.
 - 📈 Enhanced visualization options for deeper insights.
 
+
 ## 📞 Contact
 
-For any inquiries or opportunities, please contact Dr. Ridwan Oladipo at [dr.ridwan.oladipo@gmail.com](mailto:dr.ridwan.oladipo@gmail.com).
+For inquiries, collaborations, or job opportunities, please reach out:
+
+- 🌐 GitHub: [GitHub Profile](https://github.com/dr-ridwanoladipo)
+- 📧 Email: [dr.ridwan.oladipo@gmail.com](mailto:dr.ridwan.oladipo@gmail.com)
+
+## 📜 License
+
+This project is MIT licensed.
 
 ---
 

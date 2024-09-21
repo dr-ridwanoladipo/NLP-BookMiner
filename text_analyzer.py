@@ -149,14 +149,15 @@ def main():
     """, unsafe_allow_html=True)
 
     st.title("🧠 NLP Text Analyzer")
-    st.markdown("<p style='text-align: right; color: #7f8c8d;'>Developed by Dr. Ridwan Oladipo</p>",
-                unsafe_allow_html=True)
+
+    # Add space after the title
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # User Guide
     with st.expander("📘 User Guide"):
         st.markdown("""
         <div class="user-guide">
-        Welcome to the NLP Text Analyzer by Dr. Ridwan Oladipo! Here's a quick guide to get you started:
+        Welcome to the NLP Text Analyzer! Here's a quick guide to get you started:
 
         1. **Input**: Choose to either upload a file (TXT or PDF) or paste text directly.
         2. **Text Overview**: View basic statistics and a word cloud of your text.
@@ -182,6 +183,9 @@ def main():
         Explore each section to gain valuable insights into your text!
         </div>
         """, unsafe_allow_html=True)
+
+    # Add space after the title
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # File upload or text input
     upload_option = st.radio("Choose input method:", ["Upload File", "Paste Text"])
