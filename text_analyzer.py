@@ -12,12 +12,15 @@ import spacy
 import en_core_web_sm
 from nltk.corpus import stopwords
 import nltk
+import PyPDF2
+import io
 
 # Download stopwords
 nltk.download('stopwords', quiet=True)
 
 # Load spaCy model
 nlp = en_core_web_sm.load()
+
 
 class EnhancedTextAnalyzer:
     def __init__(self, text):
@@ -60,6 +63,7 @@ class EnhancedTextAnalyzer:
         pattern = re.compile(fr'\b{re.escape(word)}\b', re.IGNORECASE)
         return len(pattern.findall(self.text))
 
+
 def interpret_sentiment(score):
     if score > 0.5:
         return "Very Positive"
@@ -71,6 +75,7 @@ def interpret_sentiment(score):
         return "Negative"
     else:
         return "Very Negative"
+
 
 def interpret_readability(score):
     if score > 0.5:
@@ -84,18 +89,72 @@ def interpret_readability(score):
     else:
         return "The text may be very difficult to read and understand."
 
-def main():
-    st.set_page_config(page_title="Improved NLP Text Analyzer", layout="wide")
 
-    st.title("📊 Improved NLP Text Analyzer")
+def read_pdf(file):
+    pdf_reader = PyPDF2.PdfReader(file)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text() + "\n"
+    return text
+
+
+def main():
+    st.set_page_config(page_title="NLP Text Analyzer", layout="wide")
+
+    # Custom CSS for better styling
+    st.markdown("""
+    <style>
+    .main {
+        background-color: #f5f5f5;
+    }
+    .stApp {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    h1 {
+        color: #2c3e50;
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+    .stExpander {
+        background-color: #ffffff;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .stButton>button {
+        background-color: #3498db;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.title("🧠 NLP Text Analyzer")
+
+    # User Guide
+    with st.expander("📘 User Guide"):
+        st.markdown("""
+        Welcome to the NLP Text Analyzer! Here's a quick guide to get you started:
+
+        1. **Input**: Choose to either upload a file (TXT or PDF) or paste text directly.
+        2. **Text Overview**: View basic statistics and a word cloud of your text.
+        3. **Word Frequency**: Analyze the most common words, with an option to include/exclude stop words.
+        4. **Sentiment Analysis**: Understand the overall sentiment of your text.
+        5. **Named Entity Recognition**: Identify key entities in your text.
+        6. **Word Search**: Look for specific words and their context within the text.
+        7. **Readability Analysis**: Get insights into how easy or difficult your text is to read.
+
+        Explore each section to gain valuable insights into your text!
+        """)
 
     # File upload or text input
     upload_option = st.radio("Choose input method:", ["Upload File", "Paste Text"])
 
     if upload_option == "Upload File":
-        uploaded_file = st.file_uploader("Choose a text file", type=["txt"])
+        uploaded_file = st.file_uploader("Choose a text or PDF file", type=["txt", "pdf"])
         if uploaded_file is not None:
-            text = uploaded_file.getvalue().decode("utf-8")
+            if uploaded_file.type == "application/pdf":
+                text = read_pdf(uploaded_file)
+            else:
+                text = uploaded_file.getvalue().decode("utf-8")
         else:
             text = ""
     else:
@@ -122,23 +181,25 @@ def main():
         include_stopwords = st.checkbox("Include stop words")
         word_freq = analyzer.word_frequency(n, include_stopwords)
         df = pd.DataFrame(word_freq, columns=['Word', 'Frequency'])
-        fig = px.bar(df, x='Word', y='Frequency', title=f"Top {n} Most Frequent Words {'(Excluding Stop Words)' if not include_stopwords else ''}")
+        fig = px.bar(df, x='Word', y='Frequency',
+                     title=f"Top {n} Most Frequent Words {'(Excluding Stop Words)' if not include_stopwords else ''}",
+                     color='Frequency', color_continuous_scale='Viridis')
         st.plotly_chart(fig)
 
         st.header("😊😐😠 Sentiment Analysis")
         sentiment = analyzer.sentiment_analysis()
         fig = go.Figure(go.Indicator(
-            mode = "gauge+number",
-            value = sentiment,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Sentiment Score"},
-            gauge = {
+            mode="gauge+number",
+            value=sentiment,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': "Sentiment Score"},
+            gauge={
                 'axis': {'range': [-1, 1]},
-                'bar': {'color': "darkblue"},
-                'steps' : [
-                    {'range': [-1, -0.5], 'color': "red"},
-                    {'range': [-0.5, 0.5], 'color': "yellow"},
-                    {'range': [0.5, 1], 'color': "green"}],
+                'bar': {'color': "#3498db"},
+                'steps': [
+                    {'range': [-1, -0.5], 'color': "#e74c3c"},
+                    {'range': [-0.5, 0.5], 'color': "#f1c40f"},
+                    {'range': [0.5, 1], 'color': "#2ecc71"}],
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
@@ -147,7 +208,6 @@ def main():
         st.write(f"Interpretation: {interpret_sentiment(sentiment)}")
 
         st.header("🏷️ Named Entity Recognition")
-        st.write("Named Entity Recognition (NER) is the process of identifying and categorizing key information (entities) in text into pre-defined categories such as person names, organizations, locations, medical codes, time expressions, quantities, monetary values, percentages, etc.")
         entities = analyzer.named_entity_recognition()
         df = pd.DataFrame(entities, columns=['Entity', 'Label'])
         st.table(df)
@@ -172,17 +232,17 @@ def main():
         st.header("📖 Readability Analysis")
         readability_score = analyzer.readability_score()
         fig = go.Figure(go.Indicator(
-            mode = "gauge+number",
-            value = readability_score,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': "Readability Score"},
-            gauge = {
+            mode="gauge+number",
+            value=readability_score,
+            domain={'x': [0, 1], 'y': [0, 1]},
+            title={'text': "Readability Score"},
+            gauge={
                 'axis': {'range': [-1, 1]},
-                'bar': {'color': "darkblue"},
-                'steps' : [
-                    {'range': [-1, -0.5], 'color': "red"},
-                    {'range': [-0.5, 0.5], 'color': "yellow"},
-                    {'range': [0.5, 1], 'color': "green"}],
+                'bar': {'color': "#3498db"},
+                'steps': [
+                    {'range': [-1, -0.5], 'color': "#e74c3c"},
+                    {'range': [-0.5, 0.5], 'color': "#f1c40f"},
+                    {'range': [0.5, 1], 'color': "#2ecc71"}],
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
@@ -195,7 +255,9 @@ def main():
 
     st.markdown("---")
     st.markdown("Created with ❤️ by Your Name")
-    st.markdown("Connect with me on [LinkedIn](https://www.linkedin.com/in/yourprofile) | [GitHub](https://github.com/yourusername)")
+    st.markdown(
+        "Connect with me on [LinkedIn](https://www.linkedin.com/in/yourprofile) | [GitHub](https://github.com/yourusername)")
+
 
 if __name__ == "__main__":
     main()
